@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grande Corrida da Turma 🐎</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #111827;
+      color: #f3f4f6;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 26px;
+      color: #fbbf24;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    #game-container {
+      position: relative;
+      border: 4px solid #f59e0b;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      overflow: hidden;
+      background: #000;
+    }
+    canvas {
+      display: block;
+    }
+    .panel {
+      margin-top: 15px;
+      background: #1f2937;
+      padding: 15px 25px;
+      border-radius: 10px;
+      border: 1px solid #374151;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+      justify-content: center;
+      max-width: 800px;
+      width: 100%;
+    }
+    .wallet {
+      font-size: 18px;
+      font-weight: bold;
+      color: #10b981;
+      background: #064e3b;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+    label {
+      font-size: 14px;
+      color: #d1d5db;
+    }
+    select, input {
+      background: #374151;
+      color: #fff;
+      border: 1px solid #4b5563;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+    button {
+      background: #f59e0b;
+      color: #111827;
+      font-weight: bold;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #d97706;
+    }
+    button:disabled {
+      background: #4b5563;
+      cursor: not-allowed;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🏇 Grande Corrida da Turma!</h1>
+
+  <div id="game-container">
+    <canvas id="raceCanvas" width="800" height="420"></canvas>
+  </div>
+
+  <div class="panel">
+    <div class="wallet">💰 Saldo: R$ <span id="balance">100</span></div>
+
+    <div>
+      <label for="runnerSelect">Escolha o corredor:</label>
+      <select id="runnerSelect">
+        <option value="Agatha">Agatha (Apostar R$ 20)</option>
+        <option value="Frederico">Frederico (Apostar R$ 20)</option>
+        <option value="Yasmin">Yasmin (Apostar R$ 20)</option>
+        <option value="Maria">Maria (Apostar R$ 20)</option>
+        <option value="Kauê">Kauê (Apostar R$ 20)</option>
+        <option value="Gregório">Gregório (Apostar R$ 20)</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="betAmount">Valor da Aposta:</label>
+      <input type="number" id="betAmount" value="20" min="10" max="100" step="10" style="width: 80px;">
+    </div>
+
+    <button id="startBtn" onclick="startRace()">Iniciar Corrida!</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("raceCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Grupos para a lógica do Easter Egg
+    const groupPink = ["Agatha", "Yasmin", "Maria"];
+    const groupBlue = ["Kauê", "Gregório", "Frederico"];
+
+    const runnersData = [
+      { name: "Agatha", color: "#ec4899", jersey: "#f472b6" },
+      { name: "Frederico", color: "#3b82f6", jersey: "#60a5fa" },
+      { name: "Yasmin", color: "#a855f7", jersey: "#c084fc" },
+      { name: "Maria", color: "#f43f5e", jersey: "#fb7185" },
+      { name: "Kauê", color: "#10b981", jersey: "#34d399" },
+      { name: "Gregório", color: "#eab308", jersey: "#fde047" }
+    ];
+
+    let balance = 100;
+    let isRacing = false;
+    let skyColorType = "pink"; // 'pink' ou 'blue'
+    let winner = null;
+    let selectedRunner = "";
+    let betValue = 20;
+
+    // Estado dos Corredores
+    let runners = [];
+
+    function resetRace() {
+      // 1. Sorteio do Céu (Rosa ou Azul)
+      skyColorType = Math.random() < 0.5 ? "pink" : "blue";
+
+      // 2. Determinar o Vencedor de acordo com o Céu (Easter Egg)
+      const pool = skyColorType === "pink" ? groupPink : groupBlue;
+      winner = pool[Math.floor(Math.random() * pool.length)];
+
+      // 3. Inicializar posições
+      runners = runnersData.map((r, index) => {
+        return {
+          ...r,
+          x: 50,
+          y: 110 + index * 48,
+          speed: 0,
+          legAngle: 0,
+          isWinner: r.name === winner
+        };
+      });
+    }
+
+    function drawScene() {
+      // Desenhar Céu com Gradiente
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, 90);
+      if (skyColorType === "pink") {
+        skyGrad.addColorStop(0, "#f472b6"); // Rosa Suave
+        skyGrad.addColorStop(1, "#fbcfe8");
+      } else {
+        skyGrad.addColorStop(0, "#38bdf8"); // Azul Céu
+        skyGrad.addColorStop(1, "#bae6fd");
+      }
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, canvas.width, 90);
+
+      // Sol / Nuvens Decorativas
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.beginPath();
+      ctx.arc(120, 45, 25, 0, Math.PI * 2);
+      ctx.arc(140, 45, 20, 0, Math.PI * 2);
+      ctx.arc(650, 35, 30, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Pista de Corrida (Grama e Terra)
+      ctx.fillStyle = "#15803d"; // Grama topo
+      ctx.fillRect(0, 90, canvas.width, 10);
+
+      ctx.fillStyle = "#854d0e"; // Terra da pista
+      ctx.fillRect(0, 100, canvas.width, 320);
+
+      // Linhas da Pista
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+      ctx.lineWidth = 2;
+      for (let i = 0; i <= 6; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, 100 + i * 48);
+        ctx.lineTo(canvas.width, 100 + i * 48);
+        ctx.stroke();
+      }
+
+      // Linha de Chegada
+      const finishX = 720;
+      ctx.fillStyle = "#ffffff";
+      for (let y = 100; y < 380; y += 20) {
+        ctx.fillRect(finishX, y, 10, 10);
+        ctx.fillRect(finishX + 10, y + 10, 10, 10);
+      }
+
+      // Desenhar Cavalos e Alunos
+      runners.forEach((r) => {
+        drawHorseAndRider(r);
+      });
+    }
+
+    function drawHorseAndRider(r) {
+      ctx.save();
+      ctx.translate(r.x, r.y);
+
+      // Animação das pernas
+      const legOffset = Math.sin(r.legAngle) * 8;
+
+      // Corpo do Cavalo
+      ctx.fillStyle = "#78350f"; // Marrom do Cavalo
+      ctx.beginPath();
+      ctx.ellipse(20, 15, 18, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cabeça do Cavalo
+      ctx.beginPath();
+      ctx.ellipse(36, 5, 8, 5, -0.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Pernas do Cavalo
+      ctx.strokeStyle = "#451a03";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      // Frente
+      ctx.moveTo(30, 20); ctx.lineTo(32 + legOffset, 32);
+      ctx.moveTo(26, 20); ctx.lineTo(24 - legOffset, 32);
+      // Trás
+      ctx.moveTo(10, 20); ctx.lineTo(12 - legOffset, 32);
+      ctx.moveTo(14, 20); ctx.lineTo(12 + legOffset, 32);
+      ctx.stroke();
+
+      // Aluno (Jóquei)
+      // Corpo / Camiseta do Aluno
+      ctx.fillStyle = r.jersey;
+      ctx.fillRect(14, -2, 10, 12);
+
+      // Cabeça do Aluno
+      ctx.fillStyle = "#fde047"; // Capacetinho amarelado de jóquei
+      ctx.beginPath();
+      ctx.arc(19, -6, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Nome do Aluno
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 12px sans-serif";
+      ctx.shadowColor = "black";
+      ctx.shadowBlur = 4;
+      ctx.fillText(r.name, -10, -14);
+
+      ctx.restore();
+    }
+
+    function update() {
+      if (!isRacing) return;
+
+      let winnerReached = false;
+
+      runners.forEach((r) => {
+        // Velocidade Aleatória Fluida
+        let speedBoost = Math.random() * 2.5;
+
+        // Garantir que o Vencedor predeterminado mantenha vantagem
+        if (r.isWinner && r.x > 400) {
+          speedBoost += 0.6;
+        }
+
+        r.x += 1.2 + speedBoost;
+        r.legAngle += 0.3;
+
+        // Checar Vitória
+        if (r.x >= 700) {
+          winnerReached = true;
+        }
+      });
+
+      if (winnerReached) {
+        isRacing = false;
+        document.getElementById("startBtn").disabled = false;
+
+        // Atualizar Saldo e Mensagem
+        setTimeout(() => {
+          if (selectedRunner === winner) {
+            const prize = betValue * 3;
+            balance += prize;
+            alert(`🎉 PARABÉNS! ${winner} VENCEU A CORRIDA!\nVocê acertou e ganhou R$ ${prize}!`);
+          } else {
+            alert(`🏆 ${winner} venceu a corrida!\nInfelizmente seu escolhido (${selectedRunner}) não chegou em 1º lugar.`);
+          }
+          document.getElementById("balance").innerText = balance;
+        }, 100);
+      }
+    }
+
+    function startRace() {
+      const select = document.getElementById("runnerSelect");
+      const betInput = document.getElementById("betAmount");
+
+      selectedRunner = select.value;
+      betValue = parseInt(betInput.value) || 20;
+
+      if (betValue > balance) {
+        alert("Você não tem saldo suficiente para esta aposta!");
+        return;
+      }
+
+      // Descontar Aposta
+      balance -= betValue;
+      document.getElementById("balance").innerText = balance;
+
+      isRacing = true;
+      document.getElementById("startBtn").disabled = true;
+
+      resetRace();
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      update();
+      drawScene();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Inicialização
+    resetRace();
+    gameLoop();
+  </script>
+</body>
+</html>
