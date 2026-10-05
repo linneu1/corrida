@@ -19,11 +19,11 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      padding: 20px;
+      padding: 10px;
     }
     h1 {
-      margin-bottom: 10px;
-      font-size: 26px;
+      margin-bottom: 8px;
+      font-size: 24px;
       color: #fbbf24;
       text-shadow: 0 2px 4px rgba(0,0,0,0.6);
     }
@@ -34,26 +34,29 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.8);
       overflow: hidden;
       background: #000;
+      max-width: 100%;
     }
     canvas {
       display: block;
+      width: 100%;
+      height: auto;
     }
     .panel {
-      margin-top: 15px;
+      margin-top: 12px;
       background: #1f2937;
-      padding: 15px 25px;
+      padding: 12px 20px;
       border-radius: 10px;
       border: 1px solid #374151;
       display: flex;
       flex-wrap: wrap;
-      gap: 15px;
+      gap: 12px;
       align-items: center;
       justify-content: center;
       max-width: 800px;
       width: 100%;
     }
     .wallet {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
       color: #10b981;
       background: #064e3b;
@@ -61,16 +64,16 @@
       border-radius: 6px;
     }
     label {
-      font-size: 14px;
+      font-size: 13px;
       color: #d1d5db;
     }
     select, input {
       background: #374151;
       color: #fff;
       border: 1px solid #4b5563;
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
     }
     button {
@@ -78,10 +81,10 @@
       color: #111827;
       font-weight: bold;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 15px;
+      font-size: 14px;
       transition: 0.2s;
     }
     button:hover {
@@ -106,20 +109,20 @@
     <div class="wallet">💰 Saldo: R$ <span id="balance">100</span></div>
 
     <div>
-      <label for="runnerSelect">Escolha o corredor:</label>
+      <label for="runnerSelect">Corredor:</label>
       <select id="runnerSelect">
-        <option value="Agatha">Agatha (Apostar R$ 20)</option>
-        <option value="Frederico">Frederico (Apostar R$ 20)</option>
-        <option value="Yasmin">Yasmin (Apostar R$ 20)</option>
-        <option value="Maria">Maria (Apostar R$ 20)</option>
-        <option value="Kauê">Kauê (Apostar R$ 20)</option>
-        <option value="Gregório">Gregório (Apostar R$ 20)</option>
+        <option value="Agatha">Agatha</option>
+        <option value="Frederico">Frederico</option>
+        <option value="Yasmin">Yasmin</option>
+        <option value="Maria">Maria</option>
+        <option value="Kauê">Kauê</option>
+        <option value="Gregório">Gregório</option>
       </select>
     </div>
 
     <div>
-      <label for="betAmount">Valor da Aposta:</label>
-      <input type="number" id="betAmount" value="20" min="10" max="100" step="10" style="width: 80px;">
+      <label for="betAmount">Aposta:</label>
+      <input type="number" id="betAmount" value="20" min="10" max="100" step="10" style="width: 70px;">
     </div>
 
     <button id="startBtn" onclick="startRace()">Iniciar Corrida!</button>
@@ -129,7 +132,7 @@
     const canvas = document.getElementById("raceCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Grupos para a lógica do Easter Egg
+    // Grupos do Easter Egg Secreto
     const groupPink = ["Agatha", "Yasmin", "Maria"];
     const groupBlue = ["Kauê", "Gregório", "Frederico"];
 
@@ -144,49 +147,48 @@
 
     let balance = 100;
     let isRacing = false;
-    let skyColorType = "pink"; // 'pink' ou 'blue'
+    let raceFinished = false;
+    let skyColorType = "pink";
     let winner = null;
     let selectedRunner = "";
     let betValue = 20;
+    let resultMessage = "";
 
-    // Estado dos Corredores
     let runners = [];
 
     function resetRace() {
-      // 1. Sorteio do Céu (Rosa ou Azul)
       skyColorType = Math.random() < 0.5 ? "pink" : "blue";
-
-      // 2. Determinar o Vencedor de acordo com o Céu (Easter Egg)
       const pool = skyColorType === "pink" ? groupPink : groupBlue;
       winner = pool[Math.floor(Math.random() * pool.length)];
 
-      // 3. Inicializar posições
       runners = runnersData.map((r, index) => {
         return {
           ...r,
           x: 50,
           y: 110 + index * 48,
-          speed: 0,
           legAngle: 0,
           isWinner: r.name === winner
         };
       });
+
+      raceFinished = false;
+      resultMessage = "";
     }
 
     function drawScene() {
-      // Desenhar Céu com Gradiente
+      // Desenhar Céu
       const skyGrad = ctx.createLinearGradient(0, 0, 0, 90);
       if (skyColorType === "pink") {
-        skyGrad.addColorStop(0, "#f472b6"); // Rosa Suave
+        skyGrad.addColorStop(0, "#f472b6");
         skyGrad.addColorStop(1, "#fbcfe8");
       } else {
-        skyGrad.addColorStop(0, "#38bdf8"); // Azul Céu
+        skyGrad.addColorStop(0, "#38bdf8");
         skyGrad.addColorStop(1, "#bae6fd");
       }
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvas.width, 90);
 
-      // Sol / Nuvens Decorativas
+      // Nuvens
       ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
       ctx.beginPath();
       ctx.arc(120, 45, 25, 0, Math.PI * 2);
@@ -194,11 +196,11 @@
       ctx.arc(650, 35, 30, 0, Math.PI * 2);
       ctx.fill();
 
-      // Pista de Corrida (Grama e Terra)
-      ctx.fillStyle = "#15803d"; // Grama topo
+      // Grama e Pista
+      ctx.fillStyle = "#15803d";
       ctx.fillRect(0, 90, canvas.width, 10);
 
-      ctx.fillStyle = "#854d0e"; // Terra da pista
+      ctx.fillStyle = "#854d0e";
       ctx.fillRect(0, 100, canvas.width, 320);
 
       // Linhas da Pista
@@ -219,54 +221,70 @@
         ctx.fillRect(finishX + 10, y + 10, 10, 10);
       }
 
-      // Desenhar Cavalos e Alunos
+      // Desenhar Corredores
       runners.forEach((r) => {
         drawHorseAndRider(r);
       });
+
+      // Painel do Resultado (na própria tela)
+      if (raceFinished) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        ctx.fillRect(100, 120, 600, 180);
+        ctx.strokeStyle = "#fbbf24";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(100, 120, 600, 180);
+
+        ctx.fillStyle = selectedRunner === winner ? "#4ade80" : "#f87171";
+        ctx.font = "bold 24px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(selectedRunner === winner ? "🎉 VOCÊ GANHOU!" : "❌ NÃO FOI DESTA VEZ!", 400, 170);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "18px sans-serif";
+        ctx.fillText(`Vencedor da corrida: ${winner}!`, 400, 210);
+        ctx.fillText(resultMessage, 400, 250);
+
+        ctx.textAlign = "left";
+      }
     }
 
     function drawHorseAndRider(r) {
       ctx.save();
       ctx.translate(r.x, r.y);
 
-      // Animação das pernas
       const legOffset = Math.sin(r.legAngle) * 8;
 
-      // Corpo do Cavalo
-      ctx.fillStyle = "#78350f"; // Marrom do Cavalo
+      // Corpo
+      ctx.fillStyle = "#78350f";
       ctx.beginPath();
       ctx.ellipse(20, 15, 18, 10, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Cabeça do Cavalo
+      // Cabeça
       ctx.beginPath();
       ctx.ellipse(36, 5, 8, 5, -0.4, 0, Math.PI * 2);
       ctx.fill();
 
-      // Pernas do Cavalo
+      // Pernas
       ctx.strokeStyle = "#451a03";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      // Frente
       ctx.moveTo(30, 20); ctx.lineTo(32 + legOffset, 32);
       ctx.moveTo(26, 20); ctx.lineTo(24 - legOffset, 32);
-      // Trás
       ctx.moveTo(10, 20); ctx.lineTo(12 - legOffset, 32);
       ctx.moveTo(14, 20); ctx.lineTo(12 + legOffset, 32);
       ctx.stroke();
 
-      // Aluno (Jóquei)
-      // Corpo / Camiseta do Aluno
+      // Aluno
       ctx.fillStyle = r.jersey;
       ctx.fillRect(14, -2, 10, 12);
 
-      // Cabeça do Aluno
-      ctx.fillStyle = "#fde047"; // Capacetinho amarelado de jóquei
+      ctx.fillStyle = "#fde047";
       ctx.beginPath();
       ctx.arc(19, -6, 6, 0, Math.PI * 2);
       ctx.fill();
 
-      // Nome do Aluno
+      // Nome
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 12px sans-serif";
       ctx.shadowColor = "black";
@@ -282,38 +300,41 @@
       let winnerReached = false;
 
       runners.forEach((r) => {
-        // Velocidade Aleatória Fluida
         let speedBoost = Math.random() * 2.5;
 
-        // Garantir que o Vencedor predeterminado mantenha vantagem
-        if (r.isWinner && r.x > 400) {
-          speedBoost += 0.6;
+        // Bônus para o vencedor para manter a lógica do Easter Egg
+        if (r.isWinner && r.x > 350) {
+          speedBoost += 0.7;
         }
 
         r.x += 1.2 + speedBoost;
+
+        // Travar na linha de chegada para não sair da tela
+        if (r.x > 710) {
+          r.x = 710;
+        }
+
         r.legAngle += 0.3;
 
-        // Checar Vitória
-        if (r.x >= 700) {
+        if (r.x >= 710) {
           winnerReached = true;
         }
       });
 
       if (winnerReached) {
         isRacing = false;
+        raceFinished = true;
         document.getElementById("startBtn").disabled = false;
 
-        // Atualizar Saldo e Mensagem
-        setTimeout(() => {
-          if (selectedRunner === winner) {
-            const prize = betValue * 3;
-            balance += prize;
-            alert(`🎉 PARABÉNS! ${winner} VENCEU A CORRIDA!\nVocê acertou e ganhou R$ ${prize}!`);
-          } else {
-            alert(`🏆 ${winner} venceu a corrida!\nInfelizmente seu escolhido (${selectedRunner}) não chegou em 1º lugar.`);
-          }
-          document.getElementById("balance").innerText = balance;
-        }, 100);
+        if (selectedRunner === winner) {
+          const prize = betValue * 3;
+          balance += prize;
+          resultMessage = `Você apostou R$ ${betValue} e recebeu R$ ${prize}!`;
+        } else {
+          resultMessage = `Você apostou R$ ${betValue} em ${selectedRunner}. Tente novamente!`;
+        }
+
+        document.getElementById("balance").innerText = balance;
       }
     }
 
@@ -329,7 +350,6 @@
         return;
       }
 
-      // Descontar Aposta
       balance -= betValue;
       document.getElementById("balance").innerText = balance;
 
@@ -346,7 +366,6 @@
       requestAnimationFrame(gameLoop);
     }
 
-    // Inicialização
     resetRace();
     gameLoop();
   </script>
